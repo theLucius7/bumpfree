@@ -19,6 +19,17 @@ export function CreateRoomDialog() {
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+        const localExpiry = formData.get("expiresAt");
+        if (typeof localExpiry === "string" && localExpiry) {
+            const expiry = new Date(localExpiry);
+            if (Number.isNaN(expiry.getTime())) {
+                toast.error("过期时间格式不正确");
+                return;
+            }
+            // datetime-local has no offset. Convert in the user's browser so
+            // the server does not accidentally interpret it in its own zone.
+            formData.set("expiresAt", expiry.toISOString());
+        }
         startTransition(async () => {
             const result = await createRoom(formData);
             if (result.error) {

@@ -1,18 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import { springSmooth } from "@/lib/animations";
 
 export function FloatingHeroElements() {
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    if (!mounted) return null;
-
     return (
         <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
             {/* Mesh Gradient Blobs */}

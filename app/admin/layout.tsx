@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Users, Settings, Zap } from "lucide-react";
@@ -22,6 +22,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
     if (profile?.role !== "superadmin") redirect("/dashboard");
 
+    const navItems = [
+        { href: "/admin/users", label: "用户管理", icon: Users },
+        { href: "/admin/settings", label: "全站配置", icon: Settings },
+    ];
+
     return (
         <div className="flex min-h-screen bg-background">
             <aside className="hidden md:flex w-60 flex-col border-r border-border/60 p-4">
@@ -35,10 +40,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 </div>
                 <Separator className="mb-4" />
                 <nav className="flex-1 space-y-1">
-                    {[
-                        { href: "/admin/users", label: "用户管理", icon: Users },
-                        { href: "/admin/settings", label: "全站配置", icon: Settings },
-                    ].map(({ href, label, icon: Icon }) => (
+                    {navItems.map(({ href, label, icon: Icon }) => (
                         <Link
                             key={href}
                             href={href}
@@ -52,13 +54,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 <div className="mt-auto space-y-2">
                     <Link href="/dashboard">
                         <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground">
-                            ← 返回 Dashboard
+                            返回 Dashboard
                         </Button>
                     </Link>
                     <div className="flex items-center gap-2">
                         <ThemeToggle />
                         <form action={logoutAction} className="flex-1">
-                            <Button type="submit" variant="ghost" size="sm" className="w-full text-muted-foreground">退出</Button>
+                            <Button type="submit" variant="ghost" size="sm" className="w-full text-muted-foreground">
+                                退出
+                            </Button>
                         </form>
                     </div>
                 </div>

@@ -1,19 +1,16 @@
-// Member color palette - 12 high-contrast, aesthetically pleasing colors
-// Used to assign distinct colors to room members in the calendar
+// Member color palette for room calendars.
+// Keep this small and deliberate: one stable color per person,
+// and enough hue separation for side-by-side calendar blocks.
 
 export const MEMBER_COLORS = [
-    "#6366f1", // Indigo
-    "#f43f5e", // Rose
-    "#10b981", // Emerald
-    "#f59e0b", // Amber
-    "#3b82f6", // Blue
-    "#8b5cf6", // Violet
-    "#06b6d4", // Cyan
-    "#ef4444", // Red
-    "#14b8a6", // Teal
-    "#f97316", // Orange
-    "#84cc16", // Lime
-    "#ec4899", // Pink
+    "#2563eb", // Blue
+    "#059669", // Emerald
+    "#b45309", // Amber
+    "#7c3aed", // Violet
+    "#0891b2", // Cyan
+    "#65a30d", // Olive
+    "#c2410c", // Burnt orange
+    "#475569", // Slate
 ];
 
 /**
@@ -28,15 +25,34 @@ export function getColorForUser(userId: string, palette = MEMBER_COLORS): string
     return palette[Math.abs(hash) % palette.length];
 }
 
+export function isMemberColor(color: string | null | undefined): color is string {
+    return typeof color === "string" && MEMBER_COLORS.includes(color.toLowerCase());
+}
+
 /**
  * Get a color that's not yet used in a room (for new member assignment).
  */
 export function getNextAvailableColor(usedColors: string[]): string {
+    const normalizedUsedColors = usedColors.map((color) => color.toLowerCase());
     for (const color of MEMBER_COLORS) {
-        if (!usedColors.includes(color)) return color;
+        if (!normalizedUsedColors.includes(color)) return color;
     }
     // Fallback: cycle from beginning
     return MEMBER_COLORS[usedColors.length % MEMBER_COLORS.length];
+}
+
+/**
+ * Use persisted member colors only when they belong to the current palette.
+ * Legacy or retired colors are remapped at render time.
+ */
+export function getDisplayMemberColor(userId: string, storedColor: string | null | undefined, usedColors: string[]): string {
+    const color = storedColor?.toLowerCase();
+    if (isMemberColor(color) && !usedColors.includes(color)) return color;
+
+    const preferredColor = getColorForUser(userId);
+    if (!usedColors.includes(preferredColor)) return preferredColor;
+
+    return getNextAvailableColor(usedColors);
 }
 
 /**

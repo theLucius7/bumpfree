@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUserProfile } from "@/lib/auth/current-user";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { logoutAction } from "@/lib/actions/auth";
@@ -21,18 +21,9 @@ export default async function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const supabase = await createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const { user, profile } = await getCurrentUserProfile();
 
     if (!user) redirect("/auth/login");
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
 
     const isSuperAdmin = profile?.role === "superadmin";
 
@@ -46,7 +37,6 @@ export default async function DashboardLayout({
 
     return (
         <div className="flex min-h-screen bg-background">
-            {/* Sidebar */}
             <aside className="hidden md:flex w-60 flex-col border-r border-border/60 p-4">
                 <div className="flex items-center gap-2 px-2 py-3 mb-4">
                     <Zap className="w-5 h-5 text-primary" />
@@ -98,7 +88,6 @@ export default async function DashboardLayout({
                 </div>
             </aside>
 
-            {/* Mobile header */}
             <div className="flex flex-col flex-1 min-w-0">
                 <header className="md:hidden border-b border-border/60 px-4 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -108,7 +97,6 @@ export default async function DashboardLayout({
                     <ThemeToggle />
                 </header>
 
-                {/* Mobile bottom nav */}
                 <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6">{children}</main>
 
                 <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border/60 bg-background px-2 py-2 flex justify-around">

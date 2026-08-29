@@ -1,13 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getCurrentUserProfile } from "@/lib/auth/current-user";
 import { InvitationCard } from "@/components/dashboard/InvitationCard";
 import { Mail } from "lucide-react";
 
 export default async function InvitationsPage() {
     const supabase = await createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const { user } = await getCurrentUserProfile();
     if (!user) redirect("/auth/login");
 
     const { data: invitations } = await supabase

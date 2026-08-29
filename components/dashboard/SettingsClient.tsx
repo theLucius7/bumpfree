@@ -125,7 +125,8 @@ export function SettingsClient({ initialDisplayName, initialEmail }: SettingsCli
                                     name="password"
                                     type="password"
                                     placeholder="留空则不修改密码"
-                                    minLength={6}
+                                    minLength={8}
+                                    maxLength={128}
                                 />
                             </div>
 

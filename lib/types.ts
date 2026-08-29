@@ -9,12 +9,22 @@ export interface Profile {
     created_at: string;
 }
 
+export interface AdminUser {
+    id: string;
+    display_name: string;
+    email: string | null;
+    role: "user" | "superadmin";
+    room_quota: number;
+    schedule_quota: number;
+    created_at: string;
+}
+
 export interface Schedule {
     id: string;
     user_id: string;
     semester_tag: string;
     school: string | null;
-    start_date: string; // ISO date string
+    start_date: string;
     max_weeks: number;
     is_active: boolean;
     wakeup_raw: unknown | null;
@@ -28,13 +38,31 @@ export interface Course {
     name: string;
     room: string | null;
     teacher: string | null;
-    day_of_week: number; // 1=Mon, 7=Sun
-    start_time: string; // HH:MM
-    end_time: string; // HH:MM
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
     start_week: number;
     end_week: number;
     color: string | null;
     created_at: string;
+}
+
+export interface BusyBlock {
+    id: string;
+    user_id: string;
+    title: string;
+    starts_at: string;
+    ends_at: string;
+    note: string | null;
+    source: "manual" | "reschedule";
+    created_at: string;
+}
+
+export interface MalaysiaHoliday {
+    id: string;
+    date: string;
+    localName: string;
+    name: string;
 }
 
 export interface Room {
@@ -66,18 +94,21 @@ export interface Invitation {
     inviter?: Profile;
 }
 
-// Calendar event type for react-big-calendar
+export type CalendarEventKind = "course" | "busy" | "holiday";
+
 export interface CalendarEvent {
     id: string;
     title: string;
     start: Date;
     end: Date;
     resource: {
+        kind: CalendarEventKind;
         userId: string;
         displayName: string;
-        color: string; // member's room color
+        color: string;
         courseName: string;
         room: string | null;
         teacher: string | null;
+        note?: string | null;
     };
 }

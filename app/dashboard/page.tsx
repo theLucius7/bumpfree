@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getCurrentUserProfile } from "@/lib/auth/current-user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -7,16 +8,8 @@ import { DoorOpen, Calendar, Mail, ArrowRight } from "lucide-react";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const { user, profile } = await getCurrentUserProfile();
     if (!user) redirect("/auth/login");
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
 
     const [
         { count: roomCount },
@@ -28,7 +21,6 @@ export default async function DashboardPage() {
         supabase.from("invitations").select("*", { count: "exact", head: true }).eq("invitee_id", user.id).eq("status", "pending"),
     ]);
 
-    // Get rooms the user is a member of
     const { data: memberRooms } = await supabase
         .from("room_members")
         .select("room:rooms(id, name, is_public, created_at)")
@@ -39,14 +31,13 @@ export default async function DashboardPage() {
         <div className="max-w-4xl mx-auto space-y-6">
             <div>
                 <h1 className="text-2xl font-bold">
-                    你好，{profile?.display_name ?? "同学"} 👋
+                    你好，{profile?.display_name ?? "同学"}
                 </h1>
                 {profile?.role === "superadmin" && (
                     <Badge className="mt-1" variant="secondary">网站管理员</Badge>
                 )}
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <StatCard
                     icon={<DoorOpen className="w-5 h-5" />}
@@ -56,7 +47,7 @@ export default async function DashboardPage() {
                 />
                 <StatCard
                     icon={<Calendar className="w-5 h-5" />}
-                    label="已导入学期"
+                    label="已导入课表"
                     value={String(scheduleCount ?? 0)}
                     href="/dashboard/profile"
                 />
@@ -69,14 +60,13 @@ export default async function DashboardPage() {
                 />
             </div>
 
-            {/* Joined Rooms */}
             <Card>
                 <CardHeader>
                     <CardTitle className="text-base">我加入的 Room</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                     {(memberRooms?.length ?? 0) === 0 ? (
-                        <p className="text-sm text-muted-foreground">还没有加入任何 Room。先创建一个或等待他人邀请吧。</p>
+                        <p className="text-sm text-muted-foreground">还没有加入任何 Room。先创建一个或等待他人邀请。</p>
                     ) : (
                         memberRooms?.map((mr) => {
                             const rawRoom = Array.isArray(mr.room) ? mr.room[0] : mr.room;

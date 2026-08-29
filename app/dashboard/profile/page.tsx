@@ -1,39 +1,38 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getCurrentUserProfile } from "@/lib/auth/current-user";
+import { ScheduleImportPanel } from "@/components/dashboard/ScheduleImportPanel";
 import { WakeUpImportPanel } from "@/components/dashboard/WakeUpImportPanel";
+import { RescheduleNoticeImportPanel } from "@/components/dashboard/RescheduleNoticeImportPanel";
+import { getEnabledScheduleImportInterfaces } from "@/lib/actions/import-interfaces";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Calendar, CheckCircle2 } from "lucide-react";
+import { BookOpen, Calendar } from "lucide-react";
 import { setActiveSchedule } from "@/lib/actions/courses";
 import { Button } from "@/components/ui/button";
 import { DeleteScheduleButton } from "@/components/dashboard/DeleteScheduleButton";
+import { CourseEditorDialog } from "@/components/dashboard/CourseEditorDialog";
+import { DeleteCourseButton } from "@/components/dashboard/DeleteCourseButton";
+import { MEMBER_COLORS } from "@/lib/utils/colors";
 
 const DAY_NAMES = ["", "周一", "周二", "周三", "周四", "周五", "周六", "周日"];
 
 export default async function ProfilePage() {
     const supabase = await createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const { user, profile } = await getCurrentUserProfile();
     if (!user) redirect("/auth/login");
 
     const { data: schedules } = await supabase
         .from("schedules")
         .select("*, courses(*)")
         .eq("user_id", user.id)
-        .eq("user_id", user.id)
         .order("imported_at", { ascending: false });
-
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("schedule_quota")
-        .eq("id", user.id)
-        .single();
 
     const hasSchedule = (schedules?.length ?? 0) > 0;
     const scheduleCount = schedules?.length ?? 0;
     const quota = profile?.schedule_quota ?? 3;
     const quotaReached = scheduleCount >= quota;
+    const importInterfaces = await getEnabledScheduleImportInterfaces();
 
     return (
         <div className="max-w-3xl mx-auto space-y-6">
@@ -41,29 +40,36 @@ export default async function ProfilePage() {
                 <div>
                     <h1 className="text-2xl font-bold">我的课表</h1>
                     <p className="text-muted-foreground text-sm mt-1">
-                        通过 WakeUp 口令导入课表数据，支持多课表存档管理
+                        通过 WakeUp、文本或 HTML 导入课表数据，支持多课表存档管理
                     </p>
                 </div>
                 <div className="text-right">
                     <Badge variant={quotaReached ? "destructive" : "secondary"} className="text-xs">
-                        已存放: {scheduleCount} / {quota}
+                        已保存 {scheduleCount} / {quota}
                     </Badge>
                 </div>
             </div>
 
-            {quotaReached ? (
+            {quotaReached && (
                 <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/5 text-sm text-destructive flex items-start gap-3">
                     <BookOpen className="w-5 h-5 flex-shrink-0 mt-0.5" />
                     <div>
                         <p className="font-semibold mb-1">课表额度已满</p>
-                        <p className="opacity-90">你的账号目前受限于最大 {quota} 份课表。若要导入新学期课表，请先删除下方的过期课表。</p>
+                        <p className="opacity-90">你的账号目前最多保存 {quota} 份课表。仍可覆盖或追加到同名学期；新建学期前请先删除下方的过期课表。</p>
                     </div>
                 </div>
-            ) : (
-                <WakeUpImportPanel hasSchedule={hasSchedule} />
             )}
 
-            {/* Schedule list */}
+            <WakeUpImportPanel hasSchedule={hasSchedule} />
+            <ScheduleImportPanel interfaces={importInterfaces} canCreateSchedule={!quotaReached} />
+
+            <div className="space-y-2">
+                <RescheduleNoticeImportPanel />
+                <p className="px-1 text-xs text-muted-foreground" role="note">
+                    调课导入只会新增一段一次性 busy 时间，不会自动取消、删除或修改原课表中的课程。
+                </p>
+            </div>
+
             {hasSchedule && (
                 <div className="space-y-4">
                     <h2 className="text-base font-semibold">已存课表</h2>
@@ -84,6 +90,10 @@ export default async function ProfilePage() {
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
+                                        <CourseEditorDialog
+                                            scheduleId={schedule.id}
+                                            scheduleName={schedule.semester_tag}
+                                        />
                                         {!schedule.is_active && (
                                             <form
                                                 action={async () => {
@@ -123,7 +133,7 @@ export default async function ProfilePage() {
                                         >
                                             <span
                                                 className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
-                                                style={{ backgroundColor: course.color ?? "#6366f1" }}
+                                                style={{ backgroundColor: course.color ?? MEMBER_COLORS[0] }}
                                             />
                                             <div className="min-w-0">
                                                 <p className="font-medium truncate">{course.name}</p>
@@ -132,9 +142,20 @@ export default async function ProfilePage() {
                                                     {course.teacher && ` · ${course.teacher}`}
                                                 </p>
                                                 <p className="text-muted-foreground text-xs">
-                                                    第{course.start_week}-{course.end_week}周
+                                                    第 {course.start_week}-{course.end_week} 周
                                                     {course.room && ` · ${course.room}`}
                                                 </p>
+                                            </div>
+                                            <div className="ml-auto flex items-center gap-1">
+                                                <CourseEditorDialog
+                                                    scheduleId={schedule.id}
+                                                    scheduleName={schedule.semester_tag}
+                                                    course={course}
+                                                />
+                                                <DeleteCourseButton
+                                                    courseId={course.id}
+                                                    courseName={course.name}
+                                                />
                                             </div>
                                         </div>
                                     ))}
@@ -154,7 +175,7 @@ export default async function ProfilePage() {
                 <div className="text-center py-12 text-muted-foreground">
                     <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
                     <p>还没有导入任何课表</p>
-                    <p className="text-sm mt-1">从上方导入 WakeUp 分享口令开始</p>
+                    <p className="text-sm mt-1">从上方导入文本或 HTML 课表开始</p>
                 </div>
             )}
         </div>

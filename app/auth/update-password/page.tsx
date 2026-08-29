@@ -45,31 +45,17 @@ export default function UpdatePasswordPage() {
                 <Card>
                     <CardHeader className="text-center">
                         <CardTitle>设置新密码</CardTitle>
-                        <CardDescription>请输入您的新登录密码</CardDescription>
+                        <CardDescription>请输入新的登录密码</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="password">新密码</Label>
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    placeholder="至少6位"
-                                    required
-                                    minLength={6}
-                                />
+                                <Input id="password" name="password" type="password" placeholder="至少 8 位" required minLength={8} maxLength={128} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="confirmPassword">确认新密码</Label>
-                                <Input
-                                    id="confirmPassword"
-                                    name="confirmPassword"
-                                    type="password"
-                                    placeholder="再次输入密码"
-                                    required
-                                    minLength={6}
-                                />
+                                <Input id="confirmPassword" name="confirmPassword" type="password" placeholder="再次输入密码" required minLength={8} maxLength={128} />
                             </div>
                             {error && <p className="text-sm text-destructive">{error}</p>}
                             <Button type="submit" className="w-full" disabled={isPending}>

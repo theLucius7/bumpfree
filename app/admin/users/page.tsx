@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AdminUsersClient } from "@/components/admin/AdminUsersClient";
-import { getGlobalStats } from "@/lib/actions/admin";
+import { getAllUsers, getGlobalStats } from "@/lib/actions/admin";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, DoorOpen } from "lucide-react";
 import { PageWrapper } from "@/components/motion/PageWrapper";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminUsersPage() {
     const supabase = await createClient();
@@ -13,21 +15,15 @@ export default async function AdminUsersPage() {
     } = await supabase.auth.getUser();
     if (!user) redirect("/auth/login");
 
-    const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, display_name, role, room_quota, schedule_quota, created_at")
-        .order("created_at", { ascending: false });
-
-    const stats = await getGlobalStats();
+    const [users, stats] = await Promise.all([getAllUsers(), getGlobalStats()]);
 
     return (
         <PageWrapper className="max-w-4xl mx-auto space-y-6">
             <div>
                 <h1 className="text-2xl font-bold">用户管理</h1>
-                <p className="text-muted-foreground text-sm mt-1">管理所有用户账号和权限配额</p>
+                <p className="text-muted-foreground text-sm mt-1">管理所有用户账号、权限和配额</p>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-2 gap-4">
                 <Card>
                     <CardContent className="pt-5">
@@ -53,7 +49,7 @@ export default async function AdminUsersPage() {
                 </Card>
             </div>
 
-            <AdminUsersClient users={profiles ?? []} currentUserId={user.id} />
+            <AdminUsersClient users={users} currentUserId={user.id} />
         </PageWrapper>
     );
 }

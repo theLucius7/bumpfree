@@ -43,25 +43,11 @@ export default function LoginPage() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="email">邮箱</Label>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    required
-                                    autoComplete="email"
-                                />
+                                <Input id="email" name="email" type="email" placeholder="you@example.com" required autoComplete="email" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="password">密码</Label>
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    required
-                                    autoComplete="current-password"
-                                />
+                                <Input id="password" name="password" type="password" placeholder="至少 6 位" required autoComplete="current-password" />
                             </div>
                             {error && <p className="text-sm text-destructive">{error}</p>}
                             <Button type="submit" className="w-full" disabled={isPending}>
@@ -71,15 +57,11 @@ export default function LoginPage() {
                         </form>
                         <div className="mt-4 text-center text-sm text-muted-foreground flex items-center justify-center gap-4">
                             <span>
-                                还没账号？{" "}
-                                <Link href="/auth/register" className="text-primary hover:underline">
-                                    免费注册
-                                </Link>
+                                还没有账号？{" "}
+                                <Link href="/auth/register" className="text-primary hover:underline">免费注册</Link>
                             </span>
                             <span className="text-border">|</span>
-                            <Link href="/auth/forgot-password" className="text-primary hover:underline">
-                                忘记密码？
-                            </Link>
+                            <Link href="/auth/forgot-password" className="text-primary hover:underline">忘记密码？</Link>
                         </div>
                     </CardContent>
                 </Card>

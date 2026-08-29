@@ -1,8 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getNextAvailableColor } from "@/lib/utils/colors";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+const invitationIdSchema = z.string().uuid();
 
 export async function getMyInvitations() {
     const supabase = await createClient();
@@ -29,44 +31,17 @@ export async function acceptInvitation(invitationId: string) {
         data: { user },
     } = await supabase.auth.getUser();
     if (!user) return { error: "请先登录" };
+    const parsedId = invitationIdSchema.safeParse(invitationId);
+    if (!parsedId.success) return { error: "邀请参数不合法" };
 
-    // Get the invitation
-    const { data: inv } = await supabase
-        .from("invitations")
-        .select("*")
-        .eq("id", invitationId)
-        .eq("invitee_id", user.id)
-        .eq("status", "pending")
-        .single();
-
-    if (!inv) return { error: "邀请不存在或已处理" };
-
-    // Get existing member colors in this room
-    const { data: members } = await supabase
-        .from("room_members")
-        .select("color")
-        .eq("room_id", inv.room_id);
-
-    const usedColors = (members ?? []).map((m) => m.color);
-    const assignedColor = getNextAvailableColor(usedColors);
-
-    // Add to room_members
-    const { error: memberErr } = await supabase.from("room_members").insert({
-        room_id: inv.room_id,
-        user_id: user.id,
-        color: assignedColor,
+    const { data: roomId, error } = await supabase.rpc("accept_room_invitation", {
+        p_invitation_id: parsedId.data,
     });
-
-    if (memberErr) return { error: "加入 Room 失败" };
-
-    // Update invitation status
-    await supabase
-        .from("invitations")
-        .update({ status: "accepted" })
-        .eq("id", invitationId);
+    if (error || typeof roomId !== "string") return { error: "邀请不存在、已处理或 Room 已失效" };
 
     revalidatePath("/dashboard/invitations");
-    return { success: true, roomId: inv.room_id };
+    revalidatePath(`/room/${roomId}`);
+    return { success: true, roomId };
 }
 
 export async function declineInvitation(invitationId: string) {
@@ -75,14 +50,19 @@ export async function declineInvitation(invitationId: string) {
         data: { user },
     } = await supabase.auth.getUser();
     if (!user) return { error: "请先登录" };
+    const parsedId = invitationIdSchema.safeParse(invitationId);
+    if (!parsedId.success) return { error: "邀请参数不合法" };
 
-    const { error } = await supabase
+    const { data: declined, error } = await supabase
         .from("invitations")
         .update({ status: "declined" })
-        .eq("id", invitationId)
-        .eq("invitee_id", user.id);
+        .eq("id", parsedId.data)
+        .eq("invitee_id", user.id)
+        .eq("status", "pending")
+        .select("id")
+        .maybeSingle();
 
-    if (error) return { error: "操作失败" };
+    if (error || !declined) return { error: "邀请不存在或已处理" };
     revalidatePath("/dashboard/invitations");
     return { success: true };
 }

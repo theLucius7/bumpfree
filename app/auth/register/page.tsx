@@ -17,6 +17,8 @@ export default function RegisterPage() {
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        if (isPending) return;
+
         setError("");
         setSuccessMessage("");
         const formData = new FormData(e.currentTarget);
@@ -41,73 +43,64 @@ export default function RegisterPage() {
                 </div>
                 <Card>
                     <CardHeader className="text-center">
-                        <CardTitle>创建账号</CardTitle>
-                        <CardDescription>加入 BumpFree，开始找共同空闲</CardDescription>
+                        <CardTitle>{"\u521b\u5efa\u8d26\u53f7"}</CardTitle>
+                        <CardDescription>{"\u52a0\u5165 BumpFree\uff0c\u5f00\u59cb\u627e\u5171\u540c\u7a7a\u95f2"}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {successMessage ? (
-                            <div className="text-center py-6">
-                                <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-green-900/30 dark:text-green-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-mail-check"><path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /><path d="m16 19 2 2 4-4" /></svg>
-                                </div>
-                                <h3 className="text-lg font-medium mb-2">邮件已发送</h3>
-                                <p className="text-sm text-muted-foreground mb-6">
-                                    {successMessage}
-                                </p>
-                                <Button asChild className="w-full" variant="outline">
-                                    <Link href="/auth/login">去登录</Link>
-                                </Button>
+                            <div className="space-y-4 text-center">
+                                <p className="text-sm text-muted-foreground">{successMessage}</p>
+                                <Link href="/auth/login">
+                                    <Button className="w-full">返回登录</Button>
+                                </Link>
                             </div>
-                        ) : (
-                            <>
-                                <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="displayName">昵称</Label>
-                                        <Input
-                                            id="displayName"
-                                            name="displayName"
-                                            placeholder="你的名字"
-                                            required
-                                            maxLength={50}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email">邮箱</Label>
-                                        <Input
-                                            id="email"
-                                            name="email"
-                                            type="email"
-                                            placeholder="you@example.com"
-                                            required
-                                            autoComplete="email"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="password">密码</Label>
-                                        <Input
-                                            id="password"
-                                            name="password"
-                                            type="password"
-                                            placeholder="至少6位"
-                                            required
-                                            minLength={6}
-                                            autoComplete="new-password"
-                                        />
-                                    </div>
-                                    {error && <p className="text-sm text-destructive">{error}</p>}
-                                    <Button type="submit" className="w-full" disabled={isPending}>
-                                        {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                                        注册
-                                    </Button>
-                                </form>
-                                <div className="mt-4 text-center text-sm text-muted-foreground">
-                                    已有账号？{" "}
-                                    <Link href="/auth/login" className="text-primary hover:underline">
-                                        直接登录
-                                    </Link>
-                                </div>
-                            </>
-                        )}
+                        ) : <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="displayName">{"\u6635\u79f0"}</Label>
+                                <Input
+                                    id="displayName"
+                                    name="displayName"
+                                    placeholder={"\u4f60\u7684\u540d\u5b57"}
+                                    required
+                                    maxLength={50}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">{"\u90ae\u7bb1"}</Label>
+                                <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    required
+                                    autoComplete="email"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password">{"\u5bc6\u7801"}</Label>
+                                <Input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    placeholder="至少 8 位"
+                                    required
+                                    minLength={8}
+                                    maxLength={128}
+                                    autoComplete="new-password"
+                                />
+                            </div>
+                            {error && <p className="text-sm text-destructive">{error}</p>}
+                            <Button type="submit" className="w-full" disabled={isPending}>
+                                {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                                {isPending ? "\u6b63\u5728\u6ce8\u518c..." : "\u6ce8\u518c"}
+                            </Button>
+                        </form>}
+                        {!successMessage && <div className="mt-4 text-center text-sm text-muted-foreground">
+                            {"\u5df2\u6709\u8d26\u53f7\uff1f "}
+                            <Link href="/auth/login" className="text-primary hover:underline">
+                                {"\u76f4\u63a5\u767b\u5f55"}
+                            </Link>
+                        </div>}
                     </CardContent>
                 </Card>
             </div>

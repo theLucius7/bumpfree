@@ -56,7 +56,7 @@ export function InvitationCard({ invitation }: InvitationCardProps) {
                     </div>
                     <div className="min-w-0">
                         <CardTitle className="text-base">
-                            {invitation.inviter?.display_name ?? "某人"} 邀请你加入
+                            {invitation.inviter?.display_name ?? "某位用户"} 邀请你加入
                         </CardTitle>
                         <CardDescription className="mt-0.5">
                             Room：{invitation.room?.name}
@@ -70,12 +70,7 @@ export function InvitationCard({ invitation }: InvitationCardProps) {
             </CardHeader>
             <CardContent>
                 <div className="flex gap-2">
-                    <Button
-                        size="sm"
-                        onClick={handleAccept}
-                        disabled={isPending}
-                        className="gap-1.5"
-                    >
+                    <Button size="sm" onClick={handleAccept} disabled={isPending} className="gap-1.5">
                         {isPending ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         ) : (
@@ -83,13 +78,7 @@ export function InvitationCard({ invitation }: InvitationCardProps) {
                         )}
                         同意加入
                     </Button>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={handleDecline}
-                        disabled={isPending}
-                        className="gap-1.5"
-                    >
+                    <Button size="sm" variant="outline" onClick={handleDecline} disabled={isPending} className="gap-1.5">
                         <X className="w-3.5 h-3.5" />
                         拒绝
                     </Button>
