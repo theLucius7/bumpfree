@@ -127,3 +127,7 @@ GitHub Actions 在 Node.js 22 上依次执行 `npm ci`、生产依赖审计、li
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request。涉及依赖、数据库迁移或导入解析器的改动，请同时更新 lockfile、迁移说明或可移植回归测试。
+
+## 鸣谢
+
+特别感谢 [@zalataraglados-prog](https://github.com/zalataraglados-prog) 在 [PR #1](https://github.com/theLucius7/bumpfree/pull/1) 中提出并实现课表导入、课程管理、忙碌时段、Room 协作与管理员配置等改进方向。相关改动经过安全性和数据一致性审查后，已整理并整合到 `main`。
