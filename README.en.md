@@ -29,7 +29,7 @@ Shared timetables for student groups, clubs, and project teams—compare calenda
 
 Instead of exchanging timetable screenshots, bring your team's courses and one-off busy blocks into a shared **Room**.
 
-**Personal timetable tools organize your courses. BumpFree brings your team's timetables together.** Keep using your existing tool; export an ICS file to import and compare it here.
+**Apps such as [WakeUp课程表](https://www.wakeup.fun/) and [超级课程表](https://www.super.cn/index.php) help you manage your own timetable; BumpFree focuses on comparing multiple ICS timetables and collaborating in a shared Room.** If you already have an ICS file, import it to compare your team's schedules in one calendar.
 
 | Feature                     | What you can do                                                                                              |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
