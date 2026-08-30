@@ -1,0 +1,23 @@
+name: 功能建议
+description: 描述你希望改善的使用场景
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: 使用场景与困难
+      description: 谁在什么场景下遇到了什么问题？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的改进
+      description: 希望达到什么结果？是否有可接受的替代方案？
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: 补充信息
+      description: 可附不含个人信息的示意、参考或匿名化样例。

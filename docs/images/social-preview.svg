@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">BumpFree — 把大家的课表，放在同一张日历上。</title>
+  <desc id="desc">BumpFree 多人课表协作工具。ICS 导入、多人课表对照、公开只读分享。右侧为三位成员的彩色周日历示意，非应用截图，不代表自动计算共同空闲。</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f0f2ff"/>
+    </linearGradient>
+    <linearGradient id="calendarAccent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#6366f1"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="20" flood-color="#27265e" flood-opacity="0.09"/>
+    </filter>
+    <style>
+      text { font-family: "Hiragino Sans GB", "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
+      .latin { font-family: "Avenir Next", "Arial", sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#background)"/>
+  <circle cx="1205" cy="52" r="285" fill="#e9eaff" opacity="0.52"/>
+  <circle cx="1135" cy="577" r="205" fill="#e4f6fa" opacity="0.36"/>
+
+  <!-- The mark is a code-native calendar illustration, not a product screenshot. -->
+  <rect x="64" y="69" width="48" height="48" rx="13" fill="url(#calendarAccent)"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="75" y="83" width="26" height="23" rx="4"/>
+    <path d="M81 79v8m14-8v8M75 91h26"/>
+  </g>
+  <rect x="81" y="96" width="5" height="5" rx="1.4" fill="#c7d2fe"/>
+  <rect x="90" y="96" width="5" height="5" rx="1.4" fill="#ffffff"/>
+  <text class="latin" x="128" y="108" font-size="46" font-weight="700" letter-spacing="-1.8" fill="#15162f">BumpFree</text>
+
+  <text x="64" y="221" font-size="43" font-weight="700" letter-spacing="-1.2" fill="#15162f">把大家的课表，</text>
+  <text x="64" y="286" font-size="43" font-weight="700" letter-spacing="-1.2" fill="#4f46e5">放在同一张日历上。</text>
+  <text x="66" y="346" font-size="19" fill="#5e637b">ICS 导入 · 多人课表对照 · 公开只读分享</text>
+
+  <rect x="64" y="397" width="336" height="56" rx="14" fill="#4f46e5"/>
+  <text class="latin" x="88" y="433" font-size="22" font-weight="600" fill="#ffffff">bumpfree.lucius7.dev</text>
+  <path d="M363 425h14m-6-6 6 6-6 6" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <line x1="64" y1="511" x2="568" y2="511" stroke="#dfe2ee"/>
+  <text class="latin" x="64" y="547" font-size="16" font-weight="600" letter-spacing="0.4" fill="#676c84">OPEN SOURCE</text>
+  <circle cx="207" cy="541" r="2.5" fill="#b5b9cf"/>
+  <text class="latin" x="226" y="547" font-size="16" fill="#676c84">MIT</text>
+  <circle cx="280" cy="541" r="2.5" fill="#b5b9cf"/>
+  <text class="latin" x="299" y="547" font-size="16" fill="#676c84">Built on Cloudflare</text>
+
+  <!-- A schematic calendar: colors identify fictional members, not inferred availability. -->
+  <g filter="url(#cardShadow)">
+    <rect x="666" y="102" width="548" height="430" rx="22" fill="#ffffff" stroke="#e1e4f1"/>
+  </g>
+  <text x="695" y="148" font-size="22" font-weight="700" fill="#262840">一个 Room，三份课表</text>
+  <rect x="1103" y="126" width="82" height="29" rx="8" fill="#f0efff"/>
+  <text class="latin" x="1144" y="146" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="0.8" fill="#6258ce">WEEK VIEW</text>
+
+  <g font-size="13" fill="#676c84">
+    <circle cx="701" cy="179" r="5" fill="#6366f1"/>
+    <text x="714" y="184">成员 A</text>
+    <circle cx="799" cy="179" r="5" fill="#06b6d4"/>
+    <text x="812" y="184">成员 B</text>
+    <circle cx="897" cy="179" r="5" fill="#f59e0b"/>
+    <text x="910" y="184">成员 C</text>
+  </g>
+
+  <path d="M666 202h548" stroke="#ebedf5"/>
+  <rect x="924" y="203" width="87" height="306" fill="#fafaff"/>
+  <g font-size="13" fill="#767c91" text-anchor="middle">
+    <text x="791" y="229">周一</text>
+    <text x="879" y="229">周二</text>
+    <text x="967" y="229" fill="#4f46e5" font-weight="700">周三</text>
+    <text x="1055" y="229">周四</text>
+    <text x="1143" y="229">周五</text>
+  </g>
+  <g stroke="#eef0f6" stroke-width="1">
+    <path d="M747 246h440M747 298h440M747 350h440M747 402h440M747 454h440M747 506h440"/>
+    <path d="M747 246v260M835 246v260M923 246v260M1011 246v260M1099 246v260M1187 246v260"/>
+  </g>
+  <g class="latin" font-size="11" fill="#9197aa" text-anchor="end">
+    <text x="727" y="250">08:00</text>
+    <text x="727" y="302">10:00</text>
+    <text x="727" y="354">12:00</text>
+    <text x="727" y="406">14:00</text>
+    <text x="727" y="458">16:00</text>
+  </g>
+
+  <g font-size="12" font-weight="600">
+    <rect x="752" y="251" width="78" height="57" rx="7" fill="#e9e7ff"/>
+    <rect x="752" y="259" width="3" height="41" rx="1.5" fill="#6366f1"/>
+    <text x="762" y="274" fill="#5146b9">高等数学</text>
+    <text x="762" y="293" font-size="10" font-weight="400" fill="#7d75b8">成员 A</text>
+
+    <rect x="840" y="303" width="78" height="66" rx="7" fill="#def6fb"/>
+    <rect x="840" y="311" width="3" height="50" rx="1.5" fill="#06b6d4"/>
+    <text x="850" y="326" fill="#087c94">程序设计</text>
+    <text x="850" y="345" font-size="10" font-weight="400" fill="#4f9bae">成员 B</text>
+
+    <rect x="928" y="412" width="78" height="66" rx="7" fill="#fff2d6"/>
+    <rect x="928" y="420" width="3" height="50" rx="1.5" fill="#f59e0b"/>
+    <text x="938" y="435" fill="#a96d06">大学英语</text>
+    <text x="938" y="454" font-size="10" font-weight="400" fill="#b8934f">成员 C</text>
+
+    <rect x="1016" y="251" width="78" height="57" rx="7" fill="#e9e7ff"/>
+    <rect x="1016" y="259" width="3" height="41" rx="1.5" fill="#6366f1"/>
+    <text x="1026" y="274" fill="#5146b9">线性代数</text>
+    <text x="1026" y="293" font-size="10" font-weight="400" fill="#7d75b8">成员 A</text>
+
+    <rect x="1104" y="363" width="78" height="66" rx="7" fill="#def6fb"/>
+    <rect x="1104" y="371" width="3" height="50" rx="1.5" fill="#06b6d4"/>
+    <text x="1114" y="386" fill="#087c94">实验课</text>
+    <text x="1114" y="405" font-size="10" font-weight="400" fill="#4f9bae">成员 B</text>
+  </g>
+
+  <rect x="752" y="408" width="36" height="61" rx="6" fill="#e9e7ff"/>
+  <rect x="752" y="416" width="3" height="45" rx="1.5" fill="#6366f1"/>
+  <rect x="793" y="434" width="37" height="61" rx="6" fill="#fff2d6"/>
+  <rect x="793" y="442" width="3" height="45" rx="1.5" fill="#f59e0b"/>
+  <text class="latin" x="771" y="435" font-size="11" font-weight="600" text-anchor="middle" fill="#5146b9">A</text>
+  <text class="latin" x="813" y="461" font-size="11" font-weight="600" text-anchor="middle" fill="#a96d06">C</text>
+  <rect x="1016" y="416" width="78" height="63" rx="7" fill="#def6fb"/>
+  <rect x="1016" y="424" width="3" height="47" rx="1.5" fill="#06b6d4"/>
+  <text x="1026" y="441" font-size="12" font-weight="600" fill="#087c94">体育</text>
+  <text x="1026" y="460" font-size="10" fill="#4f9bae">成员 B</text>
+
+  <text x="940" y="567" font-size="13" text-anchor="middle" fill="#81879d">多人周日历示意 · 非应用截图</text>
+</svg>

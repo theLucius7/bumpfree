@@ -1,0 +1,2 @@
+# Preserve iCalendar CRLF bytes in both Git and direct downloads.
+*.ics -text whitespace=cr-at-eol
