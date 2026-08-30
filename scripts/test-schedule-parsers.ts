@@ -266,8 +266,15 @@ assert.equal(
   1,
   "Legacy HH:MM:SS clock values must render",
 );
-assert.equal(databaseClockEvents[0]?.start.getHours(), 9);
-assert.equal(databaseClockEvents[0]?.end.getMinutes(), 30);
+// Assert the instant, not the test runner's local display timezone.
+assert.equal(
+  databaseClockEvents[0]?.start.toISOString(),
+  "2026-04-06T01:00:00.000Z",
+);
+assert.equal(
+  databaseClockEvents[0]?.end.toISOString(),
+  "2026-04-06T02:30:00.000Z",
+);
 console.log("PASS calendar clock normalization");
 
 async function testScheduleFileExtraction() {

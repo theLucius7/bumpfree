@@ -40,7 +40,16 @@ jobs:
         run: npm run typecheck
 
       - name: Run parser and D1/API regression tests
+        env:
+          TZ: UTC
         run: npm test
+
+      - name: Repeat calendar tests in Asia/Shanghai
+        env:
+          TZ: Asia/Shanghai
+        run: |
+          node --import tsx scripts/test-schedule-parsers.ts
+          node --import tsx scripts/test-ics.ts
 
       - name: Build
         run: npm run build
