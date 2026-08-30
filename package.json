@@ -2,6 +2,7 @@
   "name": "bumpfree",
   "version": "2.0.0",
   "private": true,
+  "license": "MIT",
   "engines": {
     "node": ">=20.16 <21 || >=22.3"
   },
