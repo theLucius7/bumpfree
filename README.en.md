@@ -46,7 +46,7 @@ BumpFree visualizes recorded schedules; it does not automatically schedule meeti
 
 ### Check the import before saving
 
-<!-- TODO: Add a real ICS import-preview screenshot after authorized sign-in. -->
+![ICS import preview with fictional course times, instructors, locations, and weeks](docs/images/ics-import.jpg)
 
 Choose an ICS file, review the semester settings, course times, instructors, and locations, then confirm the import.
 
