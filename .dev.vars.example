@@ -1,0 +1,5 @@
+# Copy to worker/.dev.vars. Generate a unique LOCAL value with:
+# node -e 'console.log(require("node:crypto").randomBytes(32).toString("hex"))'
+AUTH_PEPPER=replace-with-64-hex-characters
+DEV_ORIGIN=http://localhost:3000
+SITE_URL=http://localhost:3000

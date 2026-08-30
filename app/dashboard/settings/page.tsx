@@ -1,16 +1,16 @@
-import { redirect } from "next/navigation";
-import { getCurrentUserProfile } from "@/lib/auth/current-user";
+"use client";
+import { useResource } from "@/lib/api";
+import { RequestState } from "@/components/RequestState";
 import { SettingsClient } from "@/components/dashboard/SettingsClient";
 
-export default async function SettingsPage() {
-    const { user, profile } = await getCurrentUserProfile();
-
-    if (!user) redirect("/auth/login");
-
-    return (
-        <SettingsClient
-            initialDisplayName={profile?.display_name || ""}
-            initialEmail={user.email || ""}
-        />
-    );
+export default function SettingsPage() {
+  const { data, error } = useResource<import("@/lib/api").Me>("me");
+  if (!data?.user) return <RequestState error={error} />;
+  const { user, profile } = data;
+  return (
+    <SettingsClient
+      initialDisplayName={profile?.display_name || ""}
+      initialEmail={user.email || ""}
+    />
+  );
 }

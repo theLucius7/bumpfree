@@ -1,0 +1,7 @@
+node_modules/
+.next/
+out/
+.wrangler/
+worker/.wrangler/
+public/ics-worker.js
+package-lock.json

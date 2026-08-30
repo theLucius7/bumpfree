@@ -1,0 +1,23 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "bumpfree-api",
+  "main": "index.ts",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "bumpfree.lucius7.dev/api/*", "zone_name": "lucius7.dev" },
+  ],
+  "vars": { "SITE_URL": "https://bumpfree.lucius7.dev" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bumpfree",
+      "database_id": "f36ab351-687f-4862-80c2-790fc6ede35e",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "observability": { "enabled": false },
+  "triggers": { "crons": ["17 19 * * *"] },
+}

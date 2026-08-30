@@ -7,6 +7,9 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    "**/.wrangler/**",
+    ".test-state/**",
+    "public/ics-worker.js",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",

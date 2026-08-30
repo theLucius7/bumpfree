@@ -1,0 +1,4 @@
+/admin /admin/users/ 302
+/admin/ /admin/users/ 302
+/room/:id /room/ 200
+/room/:id/ /room/ 200

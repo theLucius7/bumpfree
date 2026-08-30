@@ -1,133 +1,146 @@
 # BumpFree
 
-BumpFree 是面向高校班级、社团和项目组的多人课表协作工具。它把成员的课程与临时忙碌时间汇总到 Room 日历中，帮助组织者快速找到共同空闲时段。
+面向高校班级、社团和项目组的多人课表协作工具：导入课程、创建 Room、邀请成员，在同一日历查看课程与临时忙碌时段。
 
-## 主要能力
+线上站点：[bumpfree.lucius7.dev](https://bumpfree.lucius7.dev)
 
-- 管理课程、多个学期课表和一次性忙碌时段。
-- 创建私有或公开 Room，邀请成员并按成员筛选聚合日历。
-- 通过标准文本、松散文本和学校专用适配器预览、校正并导入课表。
-- 在自动解析失败时提交文本或图片，交由管理员人工处理。
-- 使用 Supabase Auth、PostgreSQL 与 Row Level Security 隔离用户数据。
+## 当前架构
 
-## 课表导入格式与边界
+| 组件                             | 用途                                                   |
+| -------------------------------- | ------------------------------------------------------ |
+| Cloudflare Pages                 | Next.js 16 静态导出、页面与浏览器解析器                |
+| Cloudflare Worker `bumpfree-api` | 同源 `/api/*`：登录、权限校验、业务接口                |
+| Cloudflare D1 `bumpfree`         | 用户、会话、课表、课程、Room、成员、邀请及人工处理附件 |
+| 浏览器 Web Worker                | 解析 ICS；确认预览后只上传结构化课程，不保存原始 ICS   |
 
-| 来源 | 当前处理方式 | 注意事项 |
-| --- | --- | --- |
-| WakeUp | 在个人课表页粘贴完整分享消息或 32 位 key；服务端限时请求 WakeUp API，校验后安全覆盖同名学期 | 分享 key 可读取课表，应按敏感数据处理；不要写入日志或公开 Issue |
-| BumpFree v1 / 普通文本 | 解析标准格式、中文或英文星期、12/24 小时时间及常见手机粘贴格式 | 导入前会显示课程、学期和周次预览 |
-| HTML | 通用解析器可读取表格；另有厦门大学马来西亚分校 HTML 适配器 | HTML 必须包含可识别的课表表格结构 |
-| PDF | 不在站内直接解析；先用本地工具或可信 AI 转成 UTF-8 文本，再粘贴或上传 TXT | 小体积 PDF 也可能包含超大压缩流；在没有进程级隔离前禁用服务端解析 |
-| DOCX | 服务端用 `mammoth` 抽取纯文本，再交给选中的文本适配器 | 任意 Word 排版不保证能自动还原成课程，需要检查预览 |
-| XLS / XLSX / CSV | 服务端用 SheetJS 将工作表转换为制表符分隔文本，再交给文本适配器 | 合并单元格和视觉布局可能需要人工整理 |
-| TXT | 严格按 UTF-8 文本读取 | 无法识别时可改用人工处理入口 |
-| 图片 | 可提交给管理员人工处理 | 当前没有自动 OCR；人工处理文件上限为 2 MB |
+无需 Supabase、WakeUp 口令、Vercel、付费数据库或 R2。没有运行时 Next.js 服务端或 Server Actions。静态页面不含账号数据；Worker 对每个读写接口检查身份和所有权。
 
-自动文件抽取支持 DOCX、XLS、XLSX、CSV、HTML 和 TXT，单文件上限为 5 MB；抽取结果最多 100,000 字符，工作簿最多 20 张工作表和 200,000 个有效范围单元格。页面实际允许选择的类型由启用的导入接口及其 `accepted_file_types` 决定，并不代表任意文件都能自动解析成课表。
+## 使用方式
 
-## 技术栈
+1. 注册账号，**立即保存一次性恢复码**，然后登录。
+2. 在“我的课表”选择 ICS，核对第 1 周周一、学期周数、课程时间、老师和地点，再确认导入。
+3. 创建 Room，按昵称搜索并邀请已注册用户。对方接受后，其当前启用的课表会出现在共享日历。
+4. Room 默认为私密。房主可以开启公开只读分享；公开访问不显示成员邮箱和 busy 的私人标题、备注。
+5. 可管理多个课表、切换当前课表、手动编辑课程，以及添加一次性 busy 时间。
 
-- Next.js 16.3.3（App Router、React Server Components、Server Actions、Turbopack）
-- React 19.2、TypeScript 5、Tailwind CSS 4
-- shadcn/ui、Radix UI、react-big-calendar、date-fns
-- Supabase Auth、PostgreSQL、RLS
-- Mammoth、SheetJS Community Edition
+邮箱只是**未经验证的登录标识**。本站不发送验证邮件、邀请邮件或找回密码邮件。管理员邀请生成 7 天有效的单次激活链接，需要管理员私下转交。找回密码使用恢复码，每次使用后换发新码并撤销旧会话。详细安全边界见 [SECURITY.md](SECURITY.md)。
 
-## 环境要求
+### ICS 导入边界
 
-- Node.js `>=20.16 <21 || >=22.3`；开发和 CI 推荐 Node.js 22。
-- npm，并以仓库中的 `package-lock.json` 作为可复现安装依据。
-- 一个 Supabase 项目。
+- 读取 `SUMMARY`、`DTSTART/DTEND` 或小时/分钟 `DURATION`、`LOCATION`、备注。老师从 `X-TEACHER` 或备注中的“教师/老师/Teacher/Instructor:”读取；文件没有该字段就显示“未提供”，不猜测。
+- 支持日/周/月/年 RRULE、单双周、RDATE（含 PERIOD）、EXDATE、同 UID 的 RECURRENCE-ID 精确调课，以及同一时区的 THISANDFUTURE。冲突的相同 UID 修订按 SEQUENCE/修改时间选择。
+- 支持 UTC、IANA 时区、文件中的 VTIMEZONE；无时区的时间使用文件时区或默认北京时间。精确 UTC 调课保留绝对时刻；内嵌 VTIMEZONE 的折返有独立回归。
+- 输出课表默认使用 Asia/Shanghai；日历按查看者设备时区显示。默认西南石油大学 2026–2027 秋季第 1 周周一为 **2026-08-31**，共 20 周，导入前可改。以 ICS 实际日期为准，不推测额外停课或补课。
+- 透明全天提醒跳过并提示；占用全天、跨午夜、秒级、不存在的夏令时时刻、跨时区 THISANDFUTURE 等暂不支持的情况会明确拒绝，不静默改时间。
+- 单文件最多 2 MiB、2000 条 VEVENT、5000 次实际课程，最终每份课表最多 500 条周次记录。解析在独立浏览器线程中进行，5 秒超时终止。
+- 默认“覆盖同名课表”，重复导入不会增加副本。覆盖前有确认；数据库事务保证失败时保留旧课表。也可显式新建副本。
 
-仓库的 `.nvmrc` 固定到 Node.js 22：
+“其他导入方式与人工处理”保留了标准/松散文本、HTML、DOCX、XLS/XLSX/CSV/TXT 抽取及人工处理。自动抽取文件最多 5 MiB，人工处理附件最多 2 MiB。复杂办公文件仍可能触及 Workers Free CPU 限制，优先使用浏览器解析的 ICS。PDF 服务端解析与自动 OCR 未开放。
+
+## 免费额度与容量
+
+在 Workers Free 计划下，D1 有每日 500 万行读取、10 万行写入、账号合计 5 GB 的免费额度；**单个免费数据库最多 500 MB**。超出免费限制时会返回错误，不会自动切换到付费。额度按账号共享，索引与限流计数也消耗读写次数。[D1 定价](https://developers.cloudflare.com/d1/platform/pricing/)、[D1 限制](https://developers.cloudflare.com/d1/platform/limits/)。
+
+Workers Free 有每日 10 万次请求和每次 10 ms CPU 限制。普通静态资源由 Pages 提供；本项目没有主动开通 Workers Paid 或绑定 R2。小规模课程与 Room 数据通常很小，但附件会较快占满单库空间；不能承诺无限人数或无限流量免费。[Workers 限制](https://developers.cloudflare.com/workers/platform/limits/)。
+
+## 本地开发
+
+推荐 Node.js 22（`.nvmrc`）和 npm：
 
 ```bash
-nvm install
-nvm use
-```
-
-## 本地启动
-
-```bash
-git clone https://github.com/theLucius7/bumpfree.git
-cd bumpfree
-nvm use
 npm ci
-cp .env.example .env.local
+cp .dev.vars.example worker/.dev.vars
 ```
 
-`npm ci` 适合按 lockfile 做干净安装；只有在主动调整依赖时才使用 `npm install`，并同时提交更新后的 `package-lock.json`。
-
-编辑 `.env.local`：
-
-```dotenv
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-or-publishable-key
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
-
-- `NEXT_PUBLIC_SUPABASE_URL` 与 `NEXT_PUBLIC_SUPABASE_ANON_KEY`：真实运行环境必填。
-- `NEXT_PUBLIC_SITE_URL`：认证回调基地址；生产环境应使用站点的 HTTPS 地址。
-- `SUPABASE_SERVICE_ROLE_KEY`：管理员邀请和用户列表等服务端操作需要；它会绕过 RLS，绝不能使用 `NEXT_PUBLIC_` 前缀、发送到浏览器或提交到 Git。
-
-启动开发服务器：
+给 `worker/.dev.vars` 填入独立的本地 `AUTH_PEPPER`（32 随机字节的 64 位十六进制），并让 `SITE_URL`、`DEV_ORIGIN` 与开发地址一致，例如 `http://localhost:3000`。生成命令：
 
 ```bash
+node -e 'console.log(require("node:crypto").randomBytes(32).toString("hex"))'
+npm run db:local
+```
+
+分别启动两个终端：
+
+```bash
+npm run dev:api
 npm run dev
 ```
 
-打开 [http://localhost:3000](http://localhost:3000)。
+前端开发服务器把 `/api/*` 转发到本地 8787 端口。非默认前端端口必须同步修改本地 `DEV_ORIGIN`。不要把 `DEV_ORIGIN` 部署到生产。
 
-## 数据库迁移顺序
+前端不需要任何密钥。`npm start` 只预览 `out/` 静态资源，不会启动完整 API；完整本地开发请用上述两个终端。
 
-在 Supabase SQL Editor 中逐个执行迁移，并确认当前文件成功后再继续。全新项目的正常顺序是：
+## 部署与维护
 
-1. [`001_init.sql`](./supabase/migrations/001_init.sql)
-2. [`003_fix_rooms_recursion.sql`](./supabase/migrations/003_fix_rooms_recursion.sql)
-3. [`004_busy_blocks.sql`](./supabase/migrations/004_busy_blocks.sql)
-4. [`005_allow_room_members_read_comembers.sql`](./supabase/migrations/005_allow_room_members_read_comembers.sql)
-5. [`006_import_interfaces.sql`](./supabase/migrations/006_import_interfaces.sql)
-6. [`007_custom_import_interfaces.sql`](./supabase/migrations/007_custom_import_interfaces.sql)
-7. [`008_manual_schedule_submissions.sql`](./supabase/migrations/008_manual_schedule_submissions.sql)
-8. [`009_security_hardening.sql`](./supabase/migrations/009_security_hardening.sql)
+本仓库当前绑定指定的 `bumpfree` 数据库和域名。部署到另一个账号前，必须替换 `worker/wrangler.jsonc` 中的数据库 UUID、名称、SITE_URL 和 routes，并修改页面 metadata 与 `PrimaryDomainRedirect` 的正式域名。
 
-已有环境只执行尚未应用的增量迁移，并保持上述顺序。编号 `002` 已从正常迁移链移除：破坏性恢复脚本位于 [`supabase/manual/reset_schema.sql`](./supabase/manual/reset_schema.sql)，会删除 BumpFree 的业务表和数据，不得交给自动迁移流程。只有在完成可验证备份并获得明确运维批准后才能手动执行；执行后必须重新应用完整迁移链。
+1. 复制 `.env.cloudflare.example` 为 `.env.cloudflare`，填入账号 ID 与仅覆盖目标账号/域名的 API Token。命令包装器会自动读取它；CI 也可直接提供同名环境变量。
+2. 首次部署创建 D1 和 Pages 项目，将真实 D1 UUID 写入配置。数据库迁移与发布是两步，必须先执行迁移：
 
-为避免公开站点被“首个注册者”抢占管理员权限，新用户一律以普通用户创建。全新部署完成迁移后，先注册部署者账号，再审阅并手工执行 [`supabase/manual/bootstrap_superadmin.sql`](./supabase/manual/bootstrap_superadmin.sql)，显式填写该账号邮箱后完成一次性管理员引导。该脚本只允许在 Supabase SQL Editor 等受信任的 `postgres` 会话中运行；不要放入自动迁移、应用接口或客户端。已有环境中的管理员不会被 `009` 重选或降级。
+   ```bash
+   npm run db:remote
+   ```
 
-## 工程命令
+3. 使用 `wrangler secret put AUTH_PEPPER --config worker/wrangler.jsonc` 设置**独立的生产**随机密钥。它不是 Cloudflare API Token，不能在每次部署时重新生成；必须安全备份。CLI 可通过 `node scripts/wrangler.mjs secret put AUTH_PEPPER --config worker/wrangler.jsonc` 自动读取本地 Cloudflare 凭据。
+4. 首次域名启用时：先部署 Pages、关联自定义域名、添加指向 `bumpfree.pages.dev` 的代理 CNAME，等待域名与证书 active，再启用 `bumpfree.lucius7.dev/api/*` Worker route。不要让 Worker Custom Domain 接管整个主机名；Pages 负责页面，Worker 只负责 API。
+5. 后续发布：
+
+   ```bash
+   npm run lint
+   npm run typecheck
+   npm test
+   npm run build
+   npm run db:remote
+   npm run deploy:api
+   npm run deploy:web
+   ```
+
+6. 访问 `/api/health` 确认 D1 查询正常，然后测试注册/登录和一次 ICS 导入。Pages 的默认与预览域名没有独立 API，页面会在浏览器跳回正式域名。旧 `/room/<uuid>` 链接由 Pages 重写兼容；新分享链接为 `/room/?id=<uuid>`。
+
+GitHub Actions 运行依赖审计、lint、typecheck、解析器回归、真实 workerd + D1 集成测试、静态构建及 Worker dry-run。**推送代码不会自动部署线上**；当前发布使用上面的显式命令，不把账号 Token 存入仓库。
+
+### 管理员引导
+
+新注册者永远是普通用户，不存在“首个注册者自动成为管理员”。
+
+部署者在可信终端生成私密管理员激活链接：
 
 ```bash
-npm run lint       # ESLint
-npm run typecheck  # TypeScript noEmit 检查
-npm test           # 文本、HTML、WakeUp 与 XLSX 文件抽取回归测试
-npm run build      # Next.js 生产构建
+npm run admin -- invite owner@example.com "Site owner"
 ```
 
-GitHub Actions 在 Node.js 22 上依次执行 `npm ci`、生产依赖审计、lint、typecheck、test 和 build。工作流中的 Supabase 值仅是编译占位符，不具备线上权限；部署时必须配置真实环境变量。
+命令需要 `.env.cloudflare` 和已上线的认证 API，不会发送邮件。账号若已激活，命令拒绝自动提升权限；核实账号归属后，以其确切 UUID 显式提升：
 
-## 依赖与文件处理安全
+```bash
+npm run admin -- promote <existing-user-uuid>
+```
 
-- Next.js 与 `eslint-config-next` 精确锁定同一个安全补丁版本，升级时应同步修改并完整运行工程命令。
-- npm registry 中的 `xlsx@0.18.5` 已过期且存在公开安全告警。本项目固定使用 SheetJS 官方 CDN 的 `0.20.3` tarball，并通过 lockfile integrity 校验；不要退回 npm registry 的旧包。
-- DOCX 和工作簿都属于不可信输入。系统会在第三方解析器前实际、有界地校验 ZIP 解压数据，并限制工作表、单元格和输出文本；这些边界不能替代解析器安全更新、请求限流与内存监控。
-- PDF 服务端直解析保持禁用，直至解析任务具备独立进程或容器的硬内存、CPU 和超时限制；不要仅靠文件大小或异步超时放开。
-- WakeUp 分享 key 可读取分享课表，应视作敏感数据，不要写入日志、Issue 或公开测试夹具。
-- 所有数据库表、函数和策略都应通过最新迁移验证 RLS；service-role key 只能在受控服务端代码中使用。
-- `.env.local`、真实密钥、用户课表和上传文件不得提交到仓库。
+公开注册的邮箱未经验证，不得仅因对方用了某个邮箱就认定其身份。激活链接和恢复码等同于凭据，不能粘贴到 Issue、日志或公开聊天。
 
-## 部署到 Vercel
+### 数据、备份与回滚
 
-1. 导入 GitHub 仓库并选择 Node.js 22。
-2. 配置真实的 Supabase 与站点 URL 环境变量。
-3. 按上述顺序完成数据库迁移，并为全新项目显式引导管理员账号。
-4. 部署前在干净环境执行 `npm ci && npm run lint && npm run typecheck && npm test && npm run build`。
+- D1 迁移仅在 `worker/migrations/`；编号顺序执行。数据库重新部署不会清空数据。每日定时任务只清理过期会话、限流桶与激活链接。
+- 旧 `supabase/` SQL 仅作历史参考，不再被应用、构建或迁移执行。原 Supabase 数据库未被读取、修改或删除；本次新建 D1 **不等于已经迁移旧账号与历史数据**。如需搬迁，应先取得导出、做字段映射/导入验证；旧 Auth 凭据不能直接拿来登录本版。
+- 数据库变更前导出备份，使用 D1 的 [Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/) 或经过验证的导出恢复。不要运行旧的破坏性 reset 脚本。备份包含私人课表与凭据验证数据，必须放在仓库之外并限制读取权限。
+- Pages/Worker 回滚要使用与当前 D1 schema 兼容的版本。恢复数据库不是普通发布步骤，不要在自动化中删除/重建生产表。
+- `.env.cloudflare`、`.env.auth`、`worker/.dev.vars`、原始用户文件、管理员链接、构建日志与本地 SQLite 状态均不应提交。泄露过的 Cloudflare API Token 应轮换；**不要把 API Token 轮换与 AUTH_PEPPER 轮换混为一谈**。
 
-## 贡献
+## 测试
 
-欢迎提交 Issue 和 Pull Request。涉及依赖、数据库迁移或导入解析器的改动，请同时更新 lockfile、迁移说明或可移植回归测试。
+`npm test` 仅使用内存数据库和虚构课程，不读取部署凭据。覆盖普通文本/HTML/办公文件防护、ICS 时区/重复/例外、身份隔离、会话失效、配额、并发邀请、过期重签、晚失败事务回滚与附件权限。
 
-## 鸣谢
+可选的生产端到端接口测试会创建明确标记的临时账号，最后仅按本轮记录的确切 ID/邮箱清理其数据；需要部署者显式启用：
 
-特别感谢 [@zalataraglados-prog](https://github.com/zalataraglados-prog) 在 [PR #1](https://github.com/theLucius7/bumpfree/pull/1) 中提出并实现课表导入、课程管理、忙碌时段、Room 协作与管理员配置等改进方向。相关改动经过安全性和数据一致性审查后，已整理并整合到 `main`。
+```bash
+SMOKE_WRITES=yes node --import tsx scripts/smoke-production.ts
+```
+
+此检查会消耗少量 Cloudflare 免费额度；不要高频运行或把真实个人文件放入测试。完整浏览器测试还应覆盖文件选择、预览、确认保存、Room 日历、移动端导航及恢复码保存提示。生产实测不代表所有规模都不会触及免费 CPU/存储限制。
+
+## 技术栈与贡献
+
+Next.js 16.3.3、React 19.2、TypeScript、Tailwind CSS 4、shadcn/ui、react-big-calendar、date-fns、ical.js 2.2.1、Cloudflare Workers/D1/Pages。Next 与 eslint-config-next 精确同步；ical.js 精确锁定是因为 VTIMEZONE 适配依赖其转移数据结构，升级必须运行 DST 回归。SheetJS 使用官方 0.20.3 tarball，不退回 npm registry 中过时的 0.18.5。
+
+欢迎 Issue / Pull Request。涉及依赖、数据库或认证协议的变更，请同时更新 lockfile、说明和回归测试。
+
+特别感谢 [@zalataraglados-prog](https://github.com/zalataraglados-prog) 在 [PR #1](https://github.com/theLucius7/bumpfree/pull/1) 中提出并实现课表导入、课程管理、忙碌时段、Room 协作与管理员配置等改进方向。相关贡献保留在此版本的演进中。

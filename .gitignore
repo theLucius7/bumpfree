@@ -34,6 +34,17 @@ dev-server*.log
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!.env.cloudflare.example
+.dev.vars*
+!.dev.vars.example
+.wrangler/
+.test-state/
+*.log
+playwright-report/
+test-results/
+public/ics-worker.js
+.admin-invitation.txt
+.qa-state.json
 
 # vercel
 .vercel

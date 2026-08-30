@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, DoorOpen, Github, ShieldCheck, Sparkles, Users, Zap } from "lucide-react";
+import {
+  CalendarDays,
+  DoorOpen,
+  Github,
+  ShieldCheck,
+  Sparkles,
+  Users,
+  Zap,
+} from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -14,7 +22,9 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link href="/auth/login">
-              <Button variant="ghost" size="sm">登录</Button>
+              <Button variant="ghost" size="sm">
+                登录
+              </Button>
             </Link>
             <Link href="/auth/register">
               <Button size="sm">免费注册</Button>
@@ -34,7 +44,9 @@ export default function LandingPage() {
               把多人课表放到一起，快速找到共同空闲时间
             </h1>
             <p className="text-lg text-muted-foreground mt-6 leading-relaxed">
-              导入课表，创建 Room，邀请成员加入。BumpFree 会把不同成员的课程和临时 busy 时间聚合到同一个日历里，减少反复询问和手工对时间。
+              导入 ICS 日历文件，创建 Room，邀请成员加入。BumpFree
+              会把不同成员的课程和临时 busy
+              时间聚合到同一个日历里，减少反复询问和手工对时间。
             </p>
             <div className="flex flex-col sm:flex-row gap-3 mt-8">
               <Link href="/auth/register">
@@ -44,7 +56,11 @@ export default function LandingPage() {
                 </Button>
               </Link>
               <Link href="/auth/login">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
                   登录已有账号
                 </Button>
               </Link>
@@ -56,8 +72,8 @@ export default function LandingPage() {
           <div className="max-w-6xl mx-auto px-4 py-16 grid gap-4 md:grid-cols-3">
             <FeatureCard
               icon={<CalendarDays className="w-5 h-5" />}
-              title="多格式课表导入"
-              desc="支持厦马 HTML 课表、BumpFree v1 文本、手机粘贴文本和 AI 整理后的课程数据。"
+              title="ICS 日历文件导入"
+              desc="直接读取日历文件中的课程、老师和地点，保留单双周与停课例外；无需上传分享口令。"
             />
             <FeatureCard
               icon={<Users className="w-5 h-5" />}
@@ -75,7 +91,12 @@ export default function LandingPage() {
 
       <footer className="border-t border-border/40 py-8 text-center text-sm text-muted-foreground flex items-center justify-center gap-4">
         <span>© 2026 BumpFree</span>
-        <a href="https://github.com/theLucius7/bumpfree" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-foreground">
+        <a
+          href="https://github.com/theLucius7/bumpfree"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 hover:text-foreground"
+        >
           <Github className="w-4 h-4" /> GitHub
         </a>
       </footer>
@@ -83,7 +104,15 @@ export default function LandingPage() {
   );
 }
 
-function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+function FeatureCard({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) {
   return (
     <div className="rounded-lg border border-border/60 bg-background p-5">
       <div className="w-10 h-10 rounded-md bg-primary/10 text-primary flex items-center justify-center mb-4">
