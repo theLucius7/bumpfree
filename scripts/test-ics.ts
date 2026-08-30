@@ -109,6 +109,34 @@ console.log(
 const lines = (s: string) => s.trim().replace(/\n/g, "\r\n");
 const customEvent = (body: string) =>
   lines(`BEGIN:VEVENT\n${body}\nEND:VEVENT`);
+// Shanghai has a valid 02:30 while a New York host skips that wall-clock hour.
+// Formatting must never construct an intermediate date in the host timezone.
+for (const timing of [
+  "DTSTART:20260307T183000Z\nDTEND:20260307T193000Z",
+  "DTSTART;TZID=Asia/Shanghai:20260308T023000\nDTEND;TZID=Asia/Shanghai:20260308T033000",
+]) {
+  p = parseIcs(
+    calendar(customEvent(`UID:host-gap\n${timing}\nSUMMARY:Host timezone gap`)),
+    { ...options, startDate: "2026-03-02", maxWeeks: 2 },
+  );
+  assert.equal(p.courses.length, 1);
+  assert.equal(p.courses[0].startTime, "02:30");
+  assert.equal(p.courses[0].endTime, "03:30");
+  assert.equal(p.courses[0].dayOfWeek, 7);
+  assert.equal(p.courses[0].startWeek, 1);
+}
+p = parseIcs(
+  calendar(
+    customEvent(
+      "UID:midnight\nDTSTART:20260307T160000Z\nDTEND:20260307T170000Z\nSUMMARY:Midnight",
+    ),
+  ),
+  { ...options, startDate: "2026-03-02", maxWeeks: 2 },
+);
+assert.equal(p.courses[0].startTime, "00:00");
+assert.equal(p.courses[0].endTime, "01:00");
+assert.equal(p.courses[0].dayOfWeek, 7);
+console.log("PASS ICS: host DST gap independence and midnight formatting");
 const spring = { ...options, startDate: "2026-02-23", maxWeeks: 5 };
 const autumn = { ...options, startDate: "2026-10-19", maxWeeks: 4 };
 const nyMaster = customEvent(

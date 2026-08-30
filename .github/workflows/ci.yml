@@ -51,6 +51,13 @@ jobs:
           node --import tsx scripts/test-schedule-parsers.ts
           node --import tsx scripts/test-ics.ts
 
+      - name: Repeat calendar tests in America/New_York
+        env:
+          TZ: America/New_York
+        run: |
+          node --import tsx scripts/test-schedule-parsers.ts
+          node --import tsx scripts/test-ics.ts
+
       - name: Build
         run: npm run build
 

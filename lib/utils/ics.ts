@@ -1,5 +1,5 @@
 import ICAL from "ical.js";
-import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 import { MEMBER_COLORS } from "./colors";
 import {
   validateParsedTextSchedule,
@@ -32,6 +32,31 @@ const wall = (t: Time) =>
   String(t.minute).padStart(2, "0") +
   ":" +
   String(t.second).padStart(2, "0");
+const timeFormatters = new Map<string, Intl.DateTimeFormat>();
+function zonedWall(date: Date, timeZone: string): string {
+  let formatter = timeFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      calendar: "gregory",
+      numberingSystem: "latn",
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    timeFormatters.set(timeZone, formatter);
+  }
+  // Do not create a host-local Date: its DST gap can corrupt another zone's
+  // valid wall-clock time. Explicit Intl parts also keep midnight at 00:00.
+  const parts = Object.fromEntries(
+    formatter.formatToParts(date).map(({ type, value }) => [type, value]),
+  );
+  return `${parts.year.padStart(4, "0")}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`;
+}
 class IntlTimezone extends ICAL.Timezone {
   override utcOffset(time: Time) {
     const local = wall(time),
@@ -39,20 +64,10 @@ class IntlTimezone extends ICAL.Timezone {
       matches: number[] = [];
     for (const hours of [-36, 0, 36]) {
       const sample = nominal + hours * 3600000;
-      const sampleWall = formatInTimeZone(
-        new Date(sample),
-        this.tzid,
-        "yyyy-MM-dd'T'HH:mm:ss",
-      );
+      const sampleWall = zonedWall(new Date(sample), this.tzid);
       const offset = Date.parse(sampleWall + "Z") - sample;
       const instant = nominal - offset;
-      if (
-        formatInTimeZone(
-          new Date(instant),
-          this.tzid,
-          "yyyy-MM-dd'T'HH:mm:ss",
-        ) === local
-      )
+      if (zonedWall(new Date(instant), this.tzid) === local)
         matches.push(instant);
     }
     if (!matches.length)
@@ -135,6 +150,7 @@ export function parseIcs(
   options: IcsOptions,
 ): ParsedTextSchedule {
   ICAL.TimezoneService.reset();
+  timeFormatters.clear();
   if (new TextEncoder().encode(text).length > MAX_BYTES)
     throw new Error("ICS文件不能超过2MiB");
   if (text.includes("\0")) throw new Error("ICS含无效二进制数据");
@@ -448,8 +464,10 @@ export function parseIcs(
         finishes <= begins
       )
         throw new Error("日程需包含分钟精度的有效开始和结束时间");
-      const day = formatInTimeZone(begins, options.timezone, "yyyy-MM-dd"),
-        endDay = formatInTimeZone(finishes, options.timezone, "yyyy-MM-dd");
+      const startWall = zonedWall(begins, options.timezone),
+        endWall = zonedWall(finishes, options.timezone),
+        day = startWall.slice(0, 10),
+        endDay = endWall.slice(0, 10);
       if (day !== endDay)
         throw new Error("暂不支持跨午夜课程：" + (field("summary") || uid));
       const name = field("summary") || "未命名课程";
@@ -475,8 +493,8 @@ export function parseIcs(
         teacher,
         room,
         dayOfWeek,
-        startTime: formatInTimeZone(begins, options.timezone, "HH:mm"),
-        endTime: formatInTimeZone(finishes, options.timezone, "HH:mm"),
+        startTime: startWall.slice(11, 16),
+        endTime: endWall.slice(11, 16),
         startWeek: week,
         endWeek: week,
         color: MEMBER_COLORS[rows.size % MEMBER_COLORS.length],
